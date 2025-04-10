@@ -61,4 +61,12 @@ print(f"Average Pitch: {avg_pitch:.2f} Hz")
 
 # Extract common musical notes
 chroma = librosa.feature.chroma_stft(y=y, sr=sr)
-print("Chroma shape:", chroma.shape)  # (12, t)
+note_labels = ['C', 'C#', 'D', 'D#', 'E', 'F', 
+               'F#', 'G', 'G#', 'A', 'A#', 'B']
+
+# Average energy of each pitch class over time
+mean_chroma = np.mean(chroma, axis=1)
+
+# Pair notes with their average energies
+for i, energy in enumerate(mean_chroma):
+    print(f"{note_labels[i]}: {energy:.3f}")
