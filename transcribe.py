@@ -3,7 +3,8 @@ import json
 import os
 from vosk import Model, KaldiRecognizer
 import subprocess
-
+import librosa
+import numpy as np
 
 model_path = "model"
 mp3_path = "audio/YBWM.mp3"
@@ -36,3 +37,28 @@ with wave.open(song_path, "rb") as wf:
 # Get final transcription
 result = json.loads(rec.Result())
 print("Lyrics:", result["text"])
+
+
+
+# Extract tempo and average pitch with librosa
+y, sr = librosa.load("audio/YBWM.wav")
+
+tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
+print(f"Tempo: {tempo} BPM")
+
+pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
+
+pitch_values = []
+for t in range(pitches.shape[1]):
+    index = magnitudes[:, t].argmax()
+    pitch = pitches[index, t]
+    if pitch > 0:
+        pitch_values.append(pitch)
+
+avg_pitch = np.mean(pitch_values)
+print(f"Average Pitch: {avg_pitch:.2f} Hz")
+
+
+# Extract common musical notes
+chroma = librosa.feature.chroma_stft(y=y, sr=sr)
+print("Chroma shape:", chroma.shape)  # (12, t)
