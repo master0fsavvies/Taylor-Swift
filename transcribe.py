@@ -28,7 +28,7 @@ csv_columns = [
 os.makedirs("output", exist_ok=True)
 
 def process_song(mp3_path):
-    """Process one song and append features to CSV."""
+    """Process one song and append features to CSV only if not already processed."""
     basename = os.path.basename(mp3_path)
 
     # Check filename format
@@ -38,6 +38,19 @@ def process_song(mp3_path):
     genre, song_base = basename.split("_", 1)
     song_name = os.path.splitext(song_base)[0]
     wav_path = os.path.join(audio_folder, f"{song_name}.wav")
+
+    # --- Check if song_name is already in the CSV ---
+    if os.path.exists(output_csv):
+        existing_songs = set()
+        with open(output_csv, "r", newline='') as f_csv:
+            reader = csv.DictReader(f_csv)
+            for row in reader:
+                existing_songs.add(row["song_name"])
+        if song_name in existing_songs:
+            print(f"Skipping {genre}_{song_name}: already processed.")
+            return  # Skip this song
+
+    # --- Continue processing if not skipped ---
 
     # Convert MP3 to WAV
     subprocess.run([
@@ -83,7 +96,7 @@ def process_song(mp3_path):
 
     # Build feature row
     song_features = {
-        "genre": genre,        # <- now called genre
+        "genre": genre,
         "song_name": song_name,
         "tempo": float(tempo),
         "average_pitch": float(avg_pitch),
